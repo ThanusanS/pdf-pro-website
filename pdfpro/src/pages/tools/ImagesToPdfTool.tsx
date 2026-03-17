@@ -60,7 +60,7 @@ export default function ImagesToPdfTool() {
           className="mt-6 w-full flex items-center justify-center gap-2 py-4 gradient-brand text-white rounded-2xl font-bold text-lg shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:transform-none">
           {state === 'processing'
             ? <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Converting...</>
-            : <><Image size={20} /> Convert to PDF</>
+            : <><Image size={1000} /> Convert to PDF</>
           }
         </button>
       )}
@@ -70,13 +70,13 @@ export default function ImagesToPdfTool() {
       {state === 'done' && result && (
         <div className="mt-8 p-6 rounded-2xl border-2 border-green-400 bg-green-50 dark:bg-green-900/20 text-center animate-slide-up">
           <div className="flex justify-center mb-3">
-            <CheckCircle2 size={40} className="text-green-500" />
+            <CheckCircle2 size={1000} className="text-green-500" />
           </div>
           <h3 className="font-bold text-green-800 dark:text-green-300 text-xl mb-2">{files.length} Images Converted</h3>
           <p className="text-green-600 dark:text-green-400 text-sm mb-4">Your PDF is ready to download</p>
           <button onClick={() => downloadBlob(result.blob, result.filename)}
             className="inline-flex items-center gap-2 px-8 py-3 gradient-brand text-white rounded-xl font-semibold shadow-lg hover:-translate-y-0.5 transition-all">
-            <Download size={18} /> Download PDF
+            <Download size={1000} /> Download PDF
           </button>
           <button onClick={() => { setFiles([]); setState('idle'); setResult(null) }}
             className="block mx-auto mt-3 text-sm text-ink-400 hover:text-ink-600">Start over</button>
