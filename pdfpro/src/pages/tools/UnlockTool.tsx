@@ -1,0 +1,92 @@
+import React, { useState } from 'react'
+import { Download, Unlock, CheckCircle2, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import DropZone from '../../components/DropZone'
+import AdBanner from '../../components/AdBanner'
+import { PDFDocument } from 'pdf-lib'
+import { fileToArrayBuffer, downloadBlob } from '../../utils/pdfProcessing'
+
+type State = 'idle' | 'processing' | 'done' | 'error'
+
+export default function UnlockTool() {
+  const [file, setFile] = useState<File | null>(null)
+  const [password, setPassword] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [state, setState] = useState<State>('idle')
+  const [result, setResult] = useState<{ blob: Blob; filename: string } | null>(null)
+  const [error, setError] = useState('')
+
+  const handleUnlock = async () => {
+    if (!file) return
+    setState('processing'); setError('')
+    try {
+      const ab = await fileToArrayBuffer(file)
+      const pdfDoc = await PDFDocument.load(ab, {
+        password: password || undefined,
+        ignoreEncryption: !password,
+      })
+      const bytes = await pdfDoc.save()
+      setResult({ blob: new Blob([bytes], { type: 'application/pdf' }), filename: `unlocked-${file.name}` })
+      setState('done')
+    } catch (e: any) {
+      if (e.message?.toLowerCase().includes('password')) {
+        setError('Incorrect password. Please try again.')
+      } else {
+        setError('Could not unlock this PDF. It may use encryption not supported by the browser.')
+      }
+      setState('error')
+    }
+  }
+
+  return (
+    <div className="pt-24 pb-20 px-4 max-w-3xl mx-auto">
+      <div className="text-center mb-10">
+        <h1 className="font-display text-4xl font-bold text-ink-900 dark:text-ink-100 mb-3">Unlock PDF Online Free</h1>
+        <p className="text-ink-500 text-lg">Remove password protection from PDF files instantly. No login required.</p>
+      </div>
+
+      <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+        <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-amber-700 dark:text-amber-300">Only use this tool on PDFs you own or have permission to unlock. Circumventing protection on files you do not own may be illegal.</p>
+      </div>
+
+      <DropZone onFiles={f => { setFile(f[0]); setState('idle'); setResult(null) }} files={file ? [file] : []} onRemove={() => { setFile(null); setState('idle') }} />
+
+      {file && (
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-semibold text-ink-700 dark:text-ink-300 block mb-2">Password (if protected)</label>
+            <div className="relative">
+              <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="Enter PDF password or leave blank"
+                className="w-full px-4 py-3 pr-11 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-ink-800 dark:text-ink-200 focus:outline-none focus:ring-2 focus:ring-brand-400" />
+              <button onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600">
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+          {state !== 'done' && (
+            <button onClick={handleUnlock} disabled={state === 'processing'}
+              className="w-full flex items-center justify-center gap-2 py-4 gradient-brand text-white rounded-2xl font-bold text-lg shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:transform-none">
+              {state === 'processing' ? <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Unlocking...</> : <><Unlock size={20} /> Unlock PDF</>}
+            </button>
+          )}
+        </div>
+      )}
+
+      {state === 'error' && <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 text-sm">{error}</div>}
+
+      {state === 'done' && result && (
+        <div className="mt-8 p-6 rounded-2xl border-2 border-green-400 bg-green-50 dark:bg-green-900/20 text-center animate-slide-up">
+          <div className="flex justify-center mb-3"><CheckCircle2 size={40} className="text-green-500" /></div>
+          <h3 className="font-bold text-green-800 dark:text-green-300 text-xl mb-4">PDF Unlocked</h3>
+          <button onClick={() => downloadBlob(result.blob, result.filename)}
+            className="inline-flex items-center gap-2 px-8 py-3 gradient-brand text-white rounded-xl font-semibold shadow-lg hover:-translate-y-0.5 transition-all">
+            <Download size={18} /> Download Unlocked PDF
+          </button>
+          <button onClick={() => { setFile(null); setState('idle'); setResult(null) }} className="block mx-auto mt-3 text-sm text-ink-400 hover:text-ink-600">Start over</button>
+        </div>
+      )}
+      <div className="flex justify-center mt-12"><AdBanner slot="unlock-bottom" format="rectangle" /></div>
+    </div>
+  )
+}

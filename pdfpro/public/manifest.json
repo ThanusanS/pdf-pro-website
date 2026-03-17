@@ -1,0 +1,12 @@
+{
+  "name": "PDFPro – Free PDF Tools",
+  "short_name": "PDFPro",
+  "description": "Free online PDF editor, converter and merger. No login required.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1612",
+  "theme_color": "#f97316",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
